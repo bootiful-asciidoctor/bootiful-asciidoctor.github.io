@@ -25,6 +25,7 @@ This process worked. I finished the book! It worked well, in fact. That said, th
 
 This project aims to fix those many issues and provide a foundation for new features and new horizons.
 
+
 * *Improved flow control with Spring Batch*: it uses Spring Batch to describe the flow of the pipeline. Spring Batch gives us a lot of benefits including auditability and a powerful DSL to describe concurrent stages and serial stages. It's also Spring, so we can leverage all of Java in the normal ways. I suppose I could've also used a workflow engine like Flowable in this case. Either way, the result is _way_ faster even though - technically, underneath the hood - there's a lot more going on.
 * *Smarter Git integration*: the old flow used Bash for all the Git interactions - cloning and pushing. This new project extracts those out into individual stages and leverages the wonderful https://github.com/eclipse/jgit[JGit project]. 
 * *Easier configuration* The last stage - where we publish the documents to some terminus - is a great opportunity for strategies that can be activated or deactivated with Spring Boot configuration. The entire pipeline, come to think of it, benefits from Spring Boot configuration. There are a ton of things that need to be specified in the pipeline: SSH or HTTP Git authentication credentials. Amazon S3 credentials. The workspace in whcih the documents should be built and converted. The list goes on, and it's nice to have Spring Boot's imminently flexible support here.
