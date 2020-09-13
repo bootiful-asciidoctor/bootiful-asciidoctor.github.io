@@ -1,9 +1,14 @@
 = Bootiful Asciidoctor
 
+This project is a pipeline designed to support the easy creation of code-centric, technical books like http://ReactiveSpring.io[_Reactive Spring_], whose pipeline was mostly an automated AsciidoctorJ Spring Boot application. 
 
-This project is a pipeline designed to support the easy creation of books like http://ReactiveSpring.io[_Reactive Spring_], whose pipeline was mostly an automated AsciidoctorJ Spring Boot application. The original flow looked like this: 
+== Motivations 
 
- * git clone all the code that would be included into the book. For my _Reactive Spring_ book, these came from the http://github.com/reactive-spring-book[`reactive-spring-book`]. I kept these in an OSS, Apache 2 licensed and accessible for for everyone to consume. The code isn't the most interesting bit, after all.
+In order to understand what this project provides, let's examine what the first cut at the publication pipeline provided for me, and then we can see what might be improved. 
+
+The original flow looked like this: 
+
+ * git clone all the code that would be included into the book. For my _Reactive Spring_ book, these came from the http://github.com/reactive-spring-book[`reactive-spring-book`] organization. I kept these in an OSS, Apache 2 licensed and accessible for for everyone to consume. The code isn't the most interesting bit, after all.
  * That would be the book itself. So, the next step `git clone`s the book's docs, as well. 
  * then I ran the https://github.com/bootiful-asciidoctor/asciidoctor-autoconfiguration[Spring Boot Asciidoctor autoconfiguration]. The autoconfiguration does a ton of the drudgery involved in using Asciidoctor to convert `.adoc` files into five different output formats: prepress-ready `.PDF`, screen-ready `.PDF`, `.html`, `.epub`, and `.mobi`. 
  * the next step was to take the output artifacts, then push the results to a place where I could collect them. The thing I used was a branch in a Git repository. 
@@ -13,3 +18,4 @@ This process worked. I finished the book! It worked well, in fact. That said, th
 * There are multiple code repositories - more than a dozen discrete Git repositories that needed to be cloned before the book could be successfully run. I did this in a Bash for-loop, one after the other. This kind of work is what we call embarassingly parallel. There's no reason we couldn't do all that stuff concurrently. As it was, this stage in the process took a minute or more. 
 * The autoconfiguration was also serialized. I invoked one `DocumentProducer` after the other. This was very valuable in the beginning when I was trying to figure out AsciidoctorJ and iron out the kinks in the pipeline because it made it easier to debug everything. Now, these five conversions could also be concurrent. 
 * The last step in the process - stashing the output documents somewhere so that I could download them and then upload them to Amazon KDP, Leanpub.com, etc - should be a bit more flexible. I stashed them in a branch on a private Git repository using some Bash scripting. There's no reason they couldn't have been sent to me by email, or uploaded to an Amazon S3 bucket.
+
