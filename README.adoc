@@ -34,7 +34,3 @@ This project aims to fix those many issues and provide a foundation for new feat
 * *Convention over configuration*: Asciidoctor and Spring are vast, infinite in their possibilities. The process of publishing a technical book, on the other hand, is a known quanitity. This new pipeline adopts some conventions - well known attributes to refer to the code repository, assumptions about the styling of the book, etc. - to reduce to a handful of configuration options what turns out to be a dozen or so configuration options otherwise. Additionally, this project takes advantage of Spring Boot autoconfiguration to respond to classes, properties, etc. You should be able to get a new book pipeline up and running in a matter of minutes.
 * *Integration and Isolation*: So, the meat of this pipeline is based on AsciidoctorJ, which is basically the Ruby Asciidoctor-gem turned into a Java `.jar` with JRuby. The Asciidoctor gem in turn loads other gems like `asciidoctor-pdf` and `asciidoctor-epub3`. The combinations of these things makes life interesting from a classloader, Maven and Java class compatability perspective. This project handles as much of that as possible for you and documents the rest.
 
-
-== Test
-
-ss
