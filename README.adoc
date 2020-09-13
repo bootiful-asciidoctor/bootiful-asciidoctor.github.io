@@ -1,5 +1,6 @@
 = Bootiful Asciidoctor
 
+
 This project is a pipeline designed to support the easy creation of code-centric, technical books like http://ReactiveSpring.io[_Reactive Spring_], whose pipeline was mostly an automated AsciidoctorJ Spring Boot application. 
 
 == Motivations 
@@ -34,3 +35,6 @@ This project aims to fix those many issues and provide a foundation for new feat
 * *Integration and Isolation*: So, the meat of this pipeline is based on AsciidoctorJ, which is basically the Ruby Asciidoctor-gem turned into a Java `.jar` with JRuby. The Asciidoctor gem in turn loads other gems like `asciidoctor-pdf` and `asciidoctor-epub3`. The combinations of these things makes life interesting from a classloader, Maven and Java class compatability perspective. This project handles as much of that as possible for you and documents the rest.
 
 
+== Test
+
+ss
