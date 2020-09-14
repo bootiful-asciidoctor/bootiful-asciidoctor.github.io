@@ -157,3 +157,126 @@ pipeline.job.include-repositories=\
 
 The pipeline sets up some common attributes including one called `code` which you can use to reference the root of all the cloned Git repositories from the `document-repository` property. So, assuming you wanted to reference one of the bits of configuration or code - let's say you have a file called `src/main/java/Main.java` - from `your-org/code-repo-1`, then you can include `{code}/code-repo-1/src/main/java/Main.java` in your Asciidoctor book chapters.
 
+If you want to disable the pipeline as a whole, set `pipeline.job.enabled=false`.
+
+There are five `DocumentProducer` beans registered by default as part of the underlying `asciidoctor-autoconfiguration`. One of them, the `MobiProducer`, will fail when running anywhere but Linux as it relies on a Linux binary for `kindlegen`. If you have the MacOS-compatible binary, great. Use that. Otherwise, you may want to disable that particular `DocumentProducer` when running the pipeline on your local MacOS or Windows machine. Indeed, you may want to disable any or all of the `DocumentProducer` beans! There are five properties you can use to toggle them on or off.
+
+Here are the five properties. Specify any of them and set them as false or true based on your particular use case. You could mix-and-match these properties with Spring profiles so that they're disabled or enabled when running in your CI environment or otherwise not.
+
+* `publication.epub.enabled`
+* `publication.mobi.enabled`
+* `publication.html.enabled`
+* `publication.pdf.prepress.enabled`
+* `publication.pdf.screen.enabled`
+
+If you're running on MacOS, as I am, you'd specify `publication.mobi.enabled=false`.
+
+Remember, you could specify all of these properties through any mechanism Spring Boot provides, including environment variables.
+
+You might for example have the following enviropnment variable before you run the pipeline:
+
+[source,bash]
+----
+export PUBLICATION_MOBI_ENABLED=false
+----
+
+Then run the pipeline. That will override any value specified in your local `application.properties` or `application.yml`.
+
+=== Spring Boot Overrides and Events
+
+Let's look at a sample Spring Boot application that configures a few things beyond what we've loked at:
+
+[source,java]
+----
+package com.example.samplepipeline;
+
+import bootiful.asciidoctor.DocumentsPublishedEvent;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.batch.JobExecutionEvent;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.env.Environment;
+
+@Log4j2
+@SpringBootApplication
+public class SamplePipelineApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(SamplePipelineApplication.class, args);
+    }
+
+	//<1>
+    @Bean
+    ApplicationListener<DocumentsPublishedEvent> documentsPublishedListener() {
+        return event -> {
+            log.info("Ding! The files are ready!");
+            for (var e : event.getSource().entrySet())
+                log.info(e.getKey() + '=' + e.getValue());
+        };
+    }
+
+	//<2>
+    @Bean
+    ApplicationListener<JobExecutionEvent> batchJobListener() {
+        return event -> {
+            var jobExecution = event.getJobExecution();
+            var createTime = jobExecution.getCreateTime();
+            var endTime = jobExecution.getEndTime();
+            var jobName = jobExecution.getJobInstance().getJobName();
+            log.info("job (" + jobName + ") start time: " + createTime.toString());
+            log.info("job (" + jobName + ") stop time: " + endTime.toString());
+        };
+    }
+}
+----
+<1> The pipeline publishes an  `ApplicationEvent` after the pipeline has produced all the documents. You can get the `source` of the event - a `Map<String,Collection<File>>` that contains a mapping of type of document to the output documents. So, for example, the HTML producer might produce two files: `index.html` and an `images` directory. The key for the map is a way to distinguish which file is which. The pipeline produces _two_ `.pdf` files, for example. One for screen, and one for prepress.
+<2> Spring Batch, on top of which this pipeline is built, also publishes some interesting information through an event. You can ask the job how long it took to run, its exit status, etc.
+
+You don't need to provide either of these `ApplicationListener` beans, howeever. Literally a `public static void main` and you're done.
+
+== Document Publication
+
+We've just looked at the flow and we assumed you have access to the directory where the files were dumped as part of the pipeline - whatever directory you specified in `pipeline.job.target`. This assumption's invalid in most CI environments, so you'll want to have those artifacts uploaded somewhere.
+
+`DocumentPublisher` implementations help with this, taking the output of the build pipeline and publishing them somewhere for you to collect and inspect them.
+
+=== Git Branch Publication
+
+This is the simplest one to git working so you might want to start with this one. It clones a specified git repository, checks out a particular branch, then adds a directory for each output document type. Then, it adds the output artifacts intot hat directory, commits it, and pushes the branch - new artifacts and all - back to the Git repository. You'll need to configure a few things - the Git repository and the branch - for this to work.
+
+[source,properties]
+----
+pipeline.job.publishers.git.enabled=true
+pipeline.job.publishers.git.artifact-branch=artifacts
+pipeline.job.publishers.git.repository=https://github.com/your-org/your-artifact-repo.git
+----
+
+You'll also need to specify an implementation of a `PushCommandCreator`. This is an SPI callback in which a client is given a reference to a JGit `Git` repository and can then authenticate and stipulate whatever else it wants to handle successfully authenticating. I have a bunch of convenient static helpers in a class called `com.joshlong.git.GitUtils`. If you're using HTTP authentication for Github, for example, then the configuration could be as simple as this:
+
+[source,java]
+----
+	@Bean
+	PushCommandCreator pushCommandCreator(@Value("${GIT_USERNAME}") String user, @Value("${GIT_PERSONAL_ACCESS_TOKEN}") String pw) {
+		return GitUtils.createHttpPushCommandCreator(user, pw);
+	}
+----
+
+
+=== Amazon S3 Bucket Publication
+
+This `DocumentPublisher` that uploads an archive to an Amazon S3 bucket containig all the documents.
+
+[source,properties]
+----
+pipeline.job.publishers.s3.enabled=true
+pipeline.job.publishers.s3.access-key-id=${AWS_ACCESS_KEY_ID}
+pipeline.job.publishers.s3.region=${AWS_REGION}
+pipeline.job.publishers.s3.secret-access-key=${AWS_SECRET_ACCESS_KEY}
+pipeline.job.publishers.s3.bucket-name=bootiful-asciidoctor
+----
+
+This will configure an `AmazonS3` client from the official AWS Amazon S3 client SDK. There are, as always, _many_ ways to authenticate wit Amazon. If you want to use a service principal or something else, then feel free to provide a bean of type `AmazonS3` in the application context that's so configured and the `DocumentPublisher` will defer to that one isntead.
+
