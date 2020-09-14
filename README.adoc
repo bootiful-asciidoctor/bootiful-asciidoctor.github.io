@@ -1,36 +1,121 @@
 = Bootiful Asciidoctor
 
 
-This project is a pipeline designed to support the easy creation of code-centric, technical books like http://ReactiveSpring.io[_Reactive Spring_], whose pipeline was mostly an automated AsciidoctorJ Spring Boot application. 
+This project is a pipeline designed to support the easy creation of code-centric, technical books like http://ReactiveSpring.io[_Reactive Spring_], whose pipeline was mostly an automated AsciidoctorJ Spring Boot application.
 
-== Motivations 
+== Motivations
 
-In order to understand what this project provides, let's examine what the first cut at the publication pipeline provided for me, and then we can see what might be improved. 
+In order to understand what this project provides, let's examine what the first cut at the publication pipeline provided for me, and then we can see what might be improved.
 
-The original flow looked like this: 
+The original flow looked like this:
 
  * git clone all the code that would be included into the book. For my _Reactive Spring_ book, these came from the http://github.com/reactive-spring-book[`reactive-spring-book`] organization. I kept these in an OSS, Apache 2 licensed and accessible for for everyone to consume. The code isn't the most interesting bit, after all.
- * That would be the book itself. So, the next step `git clone`s the book's docs, as well. 
- * then I ran the https://github.com/bootiful-asciidoctor/asciidoctor-autoconfiguration[Spring Boot Asciidoctor autoconfiguration]. The autoconfiguration does a ton of the drudgery involved in using Asciidoctor to convert `.adoc` files into five different output formats: prepress-ready `.PDF`, screen-ready `.PDF`, `.html`, `.epub`, and `.mobi`. 
- * the next step was to take the output artifacts, then push the results to a place where I could collect them. The thing I used was a branch in a Git repository. 
- 
-This process worked. I finished the book! It worked well, in fact. That said, there were some issues. 
+ * That would be the book itself. So, the next step `git clone`s the book's docs, as well.
+ * then I ran the https://github.com/bootiful-asciidoctor/asciidoctor-autoconfiguration[Spring Boot Asciidoctor autoconfiguration]. The autoconfiguration does a ton of the drudgery involved in using Asciidoctor to convert `.adoc` files into five different output formats: prepress-ready `.PDF`, screen-ready `.PDF`, `.html`, `.epub`, and `.mobi`.
+ * the next step was to take the output artifacts, then push the results to a place where I could collect them. The thing I used was a branch in a Git repository.
 
-* There are multiple code repositories - more than a dozen discrete Git repositories that needed to be cloned before the book could be successfully run. I did this in a Bash for-loop, one after the other. This kind of work is what we call embarassingly parallel. There's no reason we couldn't do all that stuff concurrently. As it was, this stage in the process took a minute or more. 
-* The autoconfiguration was also serialized. I invoked one `DocumentProducer` after the other. This was very valuable in the beginning when I was trying to figure out AsciidoctorJ and iron out the kinks in the pipeline because it made it easier to debug everything. Now, these five conversions could also be concurrent. 
+This process worked. I finished the book! It worked well, in fact. That said, there were some issues.
+
+* There are multiple code repositories - more than a dozen discrete Git repositories that needed to be cloned before the book could be successfully run. I did this in a Bash for-loop, one after the other. This kind of work is what we call embarassingly parallel. There's no reason we couldn't do all that stuff concurrently. As it was, this stage in the process took a minute or more.
+* The autoconfiguration was also serialized. I invoked one `DocumentProducer` after the other. This was very valuable in the beginning when I was trying to figure out AsciidoctorJ and iron out the kinks in the pipeline because it made it easier to debug everything. Now, these five conversions could also be concurrent.
 * The last step in the process - stashing the output documents somewhere so that I could download them and then upload them to Amazon KDP, Leanpub.com, etc - should be a bit more flexible. I stashed them in a branch on a private Git repository using some Bash scripting. There's no reason they couldn't have been sent to me by email, or uploaded to an Amazon S3 bucket.
 * The whole pipeline was in Travis CI. I've moved virtually everything on which I'm continually working to Github Actions _except_ the book. I was so worried about trying to recreate the spaghetti code pipeline in a new environment, particularly when I could be spending that time trying to ship the final edition of this book that ended up taking me two years to finish.
-* In addition the result was a combination of Bash scripting and Java code that sort of interleaved to give us the final result. It became harder and harder to reproduce the flow on my local machine. 
+* In addition the result was a combination of Bash scripting and Java code that sort of interleaved to give us the final result. It became harder and harder to reproduce the flow on my local machine.
 * The whole thing - because it lacked concurrency - took _forever_! It took something like eight minutes on the Travis CI. That's in addition to Travis CI's inherit slowness. Have you noticed how fast out the gate Github Actions is? It's _crazy_! I type `git push` and refresh the Github Actions browser page and it's _already_ processing! **Thank you** Github.
 * Storing multi megabyte pdf documents and output artifacts in a Git repository isn't great. We can and should do better.
 
 This project aims to fix those many issues and provide a foundation for new features and new horizons.
 
-
 * *Improved flow control with Spring Batch*: it uses Spring Batch to describe the flow of the pipeline. Spring Batch gives us a lot of benefits including auditability and a powerful DSL to describe concurrent stages and serial stages. It's also Spring, so we can leverage all of Java in the normal ways. I suppose I could've also used a workflow engine like Flowable in this case. Either way, the result is _way_ faster even though - technically, underneath the hood - there's a lot more going on.
-* *Smarter Git integration*: the old flow used Bash for all the Git interactions - cloning and pushing. This new project extracts those out into individual stages and leverages the wonderful https://github.com/eclipse/jgit[JGit project]. 
+* *Smarter Git integration*: the old flow used Bash for all the Git interactions - cloning and pushing. This new project extracts those out into individual stages and leverages the wonderful https://github.com/eclipse/jgit[JGit project].
 * *Easier configuration* The last stage - where we publish the documents to some terminus - is a great opportunity for strategies that can be activated or deactivated with Spring Boot configuration. The entire pipeline, come to think of it, benefits from Spring Boot configuration. There are a ton of things that need to be specified in the pipeline: SSH or HTTP Git authentication credentials. Amazon S3 credentials. The workspace in whcih the documents should be built and converted. The list goes on, and it's nice to have Spring Boot's imminently flexible support here.
 * *More dynamic control flow*: I feel like this merely restates the point about improved flow control and easier configuration differently, but it's important: it's _much_ easier to use loops, if/else, while loops, and recursion from Java and Spring then it is from Bash. We can dynamically add functionality to stages or indeed dynamically add stages to the pipeline, all in response to extenal configuration or changing dynamics.
 * *Convention over configuration*: Asciidoctor and Spring are vast, infinite in their possibilities. The process of publishing a technical book, on the other hand, is a known quanitity. This new pipeline adopts some conventions - well known attributes to refer to the code repository, assumptions about the styling of the book, etc. - to reduce to a handful of configuration options what turns out to be a dozen or so configuration options otherwise. Additionally, this project takes advantage of Spring Boot autoconfiguration to respond to classes, properties, etc. You should be able to get a new book pipeline up and running in a matter of minutes.
 * *Integration and Isolation*: So, the meat of this pipeline is based on AsciidoctorJ, which is basically the Ruby Asciidoctor-gem turned into a Java `.jar` with JRuby. The Asciidoctor gem in turn loads other gems like `asciidoctor-pdf` and `asciidoctor-epub3`. The combinations of these things makes life interesting from a classloader, Maven and Java class compatability perspective. This project handles as much of that as possible for you and documents the rest.
 
+== Usage
+
+The entry point into the whole thing is the  https://github.com/bootiful-asciidoctor/sample-pipeline[`sample-pipeline`]. You can clone that for a working example. I'll break down the relevant bits.
+
+First, look at the `pom.xml`. You'll notice that most of the configuration is in the build itself. There are a few things of note. First, the build includes the the Spring Batch `Job` in the following Maven dependency:
+
+*  `bootiful.asciidoctor`  : `asciidoctor-publication-job` : `0.0.1-SNAPSHOT`
+
+
+
+This is not on Maven central so you could either build the code yourelf or just use my Artifact repository, as I did. Here's the relevant Maven configuration. There is equivalent configuration for Gradle.
+
+[source,xml]
+----
+
+<repositories>
+    <repository>
+        <snapshots>
+            <enabled>false</enabled>
+        </snapshots>
+        <id>central</id>
+        <name>libs-release</name>
+        <url>
+            https://cloudnativejava.jfrog.io/cloudnativejava/libs-release
+        </url>
+    </repository>
+    <repository>
+        <snapshots/>
+        <id>snapshots</id>
+        <name>libs-snapshot</name>
+        <url>
+            https://cloudnativejava.jfrog.io/cloudnativejava/libs-snapshot
+        </url>
+    </repository>
+</repositories>
+<pluginRepositories>
+    <pluginRepository>
+        <snapshots>
+            <enabled>false</enabled>
+        </snapshots>
+        <id>central</id>
+        <name>plugins-release</name>
+        <url>
+            https://cloudnativejava.jfrog.io/cloudnativejava/plugins-release
+        </url>
+    </pluginRepository>
+    <pluginRepository>
+        <snapshots/>
+        <id>snapshots</id>
+        <name>plugins-snapshot</name>
+        <url>
+            https://cloudnativejava.jfrog.io/cloudnativejava/plugins-snapshot
+        </url>
+    </pluginRepository>
+</pluginRepositories>
+----
+
+Also, there is some weirdness associated with the interaction between JRuby, AsciidoctorJ, JRuby loading JRuby gems, and the way Spring Boot packages `.jar` artifacts within other `.jar` in the Spring Boot Maven plugin. I had to tell Spring Boot's Maven plugin to not pack a few `.jar` artifacts in the same way as it does everything else.
+
+[source,xml]
+----
+<plugin>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-maven-plugin</artifactId>
+    <configuration>
+        <requiresUnpack>
+            <dependency>
+                <groupId>org.jruby</groupId>
+                <artifactId>jruby-complete</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>org.asciidoctor</groupId>
+                <artifactId>asciidoctorj</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>org.asciidoctor</groupId>
+                <artifactId>asciidoctorj-epub3</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>org.asciidoctor</groupId>
+                <artifactId>asciidoctorj-pdf</artifactId>
+            </dependency>
+        </requiresUnpack>
+    </configuration>
+</plugin>
+----

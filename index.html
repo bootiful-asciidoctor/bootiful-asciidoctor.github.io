@@ -528,10 +528,106 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="_usage">Usage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The entry point into the whole thing is the  <a href="https://github.com/bootiful-asciidoctor/sample-pipeline"><code>sample-pipeline</code></a>. You can clone that for a working example. I&#8217;ll break down the relevant bits.</p>
+</div>
+<div class="paragraph">
+<p>First, look at the <code>pom.xml</code>. You&#8217;ll notice that most of the configuration is in the build itself. There are a few things of note. First, the build includes the the Spring Batch <code>Job</code> in the following Maven dependency:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>bootiful.asciidoctor</code>  : <code>asciidoctor-publication-job</code> : <code>0.0.1-SNAPSHOT</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This is not on Maven central so you could either build the code yourelf or just use my Artifact repository, as I did. Here&#8217;s the relevant Maven configuration. There is equivalent configuration for Gradle.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">&lt;repositories&gt;
+    &lt;repository&gt;
+        &lt;snapshots&gt;
+            &lt;enabled&gt;false&lt;/enabled&gt;
+        &lt;/snapshots&gt;
+        &lt;id&gt;central&lt;/id&gt;
+        &lt;name&gt;libs-release&lt;/name&gt;
+        &lt;url&gt;
+            https://cloudnativejava.jfrog.io/cloudnativejava/libs-release
+        &lt;/url&gt;
+    &lt;/repository&gt;
+    &lt;repository&gt;
+        &lt;snapshots/&gt;
+        &lt;id&gt;snapshots&lt;/id&gt;
+        &lt;name&gt;libs-snapshot&lt;/name&gt;
+        &lt;url&gt;
+            https://cloudnativejava.jfrog.io/cloudnativejava/libs-snapshot
+        &lt;/url&gt;
+    &lt;/repository&gt;
+&lt;/repositories&gt;
+&lt;pluginRepositories&gt;
+    &lt;pluginRepository&gt;
+        &lt;snapshots&gt;
+            &lt;enabled&gt;false&lt;/enabled&gt;
+        &lt;/snapshots&gt;
+        &lt;id&gt;central&lt;/id&gt;
+        &lt;name&gt;plugins-release&lt;/name&gt;
+        &lt;url&gt;
+            https://cloudnativejava.jfrog.io/cloudnativejava/plugins-release
+        &lt;/url&gt;
+    &lt;/pluginRepository&gt;
+    &lt;pluginRepository&gt;
+        &lt;snapshots/&gt;
+        &lt;id&gt;snapshots&lt;/id&gt;
+        &lt;name&gt;plugins-snapshot&lt;/name&gt;
+        &lt;url&gt;
+            https://cloudnativejava.jfrog.io/cloudnativejava/plugins-snapshot
+        &lt;/url&gt;
+    &lt;/pluginRepository&gt;
+&lt;/pluginRepositories&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Also, there is some weirdness associated with the interaction between JRuby, AsciidoctorJ, JRuby loading JRuby gems, and the way Spring Boot packages <code>.jar</code> artifacts within other <code>.jar</code> in the Spring Boot Maven plugin. I had to tell Spring Boot&#8217;s Maven plugin to not pack a few <code>.jar</code> artifacts in the same way as it does everything else.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">&lt;plugin&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
+    &lt;configuration&gt;
+        &lt;requiresUnpack&gt;
+            &lt;dependency&gt;
+                &lt;groupId&gt;org.jruby&lt;/groupId&gt;
+                &lt;artifactId&gt;jruby-complete&lt;/artifactId&gt;
+            &lt;/dependency&gt;
+            &lt;dependency&gt;
+                &lt;groupId&gt;org.asciidoctor&lt;/groupId&gt;
+                &lt;artifactId&gt;asciidoctorj&lt;/artifactId&gt;
+            &lt;/dependency&gt;
+            &lt;dependency&gt;
+                &lt;groupId&gt;org.asciidoctor&lt;/groupId&gt;
+                &lt;artifactId&gt;asciidoctorj-epub3&lt;/artifactId&gt;
+            &lt;/dependency&gt;
+            &lt;dependency&gt;
+                &lt;groupId&gt;org.asciidoctor&lt;/groupId&gt;
+                &lt;artifactId&gt;asciidoctorj-pdf&lt;/artifactId&gt;
+            &lt;/dependency&gt;
+        &lt;/requiresUnpack&gt;
+    &lt;/configuration&gt;
+&lt;/plugin&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-09-13 17:05:31 -0700
+Last updated 2020-09-13 17:24:04 -0700
 </div>
 </div>
 </body>
