@@ -1,3 +1,6 @@
 #!/usr/bin/env bash
 
-asciidoctor README.adoc -o index.html
+./build.sh
+
+git commit -am "rebuild at $(date)"
+git push 
