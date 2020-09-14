@@ -37,11 +37,11 @@ This project aims to fix those many issues and provide a foundation for new feat
 
 The entry point into the whole thing is the  https://github.com/bootiful-asciidoctor/sample-pipeline[`sample-pipeline`]. You can clone that for a working example. I'll break down the relevant bits.
 
-First, look at the `pom.xml`. You'll notice that most of the configuration is in the build itself. There are a few things of note. First, the build includes the the Spring Batch `Job` in the following Maven dependency:
+=== The Maven Build
+
+First, look at the `pom.xml`. You'll notice that most of the configuration is in the build itself. This is a stock-standard Spring Boot application with nothing else in it. There's no reason you couldn't add to it, of course, and that's part of the charm! This whole pipeline is just delivered as an autoconfiguration. The sky's the limit! There are a few things of note. First, the build includes the the Spring Batch `Job` in the following Maven dependency:
 
 *  `bootiful.asciidoctor`  : `asciidoctor-publication-job` : `0.0.1-SNAPSHOT`
-
-
 
 This is not on Maven central so you could either build the code yourelf or just use my Artifact repository, as I did. Here's the relevant Maven configuration. There is equivalent configuration for Gradle.
 
@@ -119,3 +119,38 @@ Also, there is some weirdness associated with the interaction between JRuby, Asc
     </configuration>
 </plugin>
 ----
+
+
+Alright, that's most of the weirdness. At this point it's just using any other Spring Boot autoconfiguration. You have two extensibility planes: configuration properties such as those in `application.properties` and Spring itself.
+
+=== Configuration Properties
+
+You can get a working pipeline with a very small amount of configuration.
+
+[source,properties]
+----
+# <1>
+pipeline.job.root=${HOME}/Desktop/root
+
+# <2>
+pipeline.job.target=${HOME}/Desktop/target
+
+# <3>
+pipeline.job.book-name=My Book
+
+# <4>
+pipeline.job.document-repository=https://github.com/your-org/your-docs.git
+
+# <5>
+pipeline.job.include-repositories=\
+  https://github.com/your-org/code-repo-1.git,\
+  https://github.com/your-org/code-repo-2.git
+----
+<1> This tells the pipeline where to do its work. It has to make a mess somewhere. Where should it be?
+<2> This tells the pipeline where to dump out its produced files
+<3> This is an alias for `publication.book-name`.
+<4> This tells the pipeline where to find the `.adoc` files for your book itself. I usually keep `index.adoc` at the root of this repository. You can see this https://github.com/bootiful-asciidoctor/sample-book[sample repository] for something to clone. It includes a sample Asciidoctor book with some code includes, a cover, a table-of-contents, styling for EPub and PDF, and more.
+<5> This tells the pipeline which repositories should be cloned _before_ the book is produced so that the documents in the `document-repository` can reference files in the cloned repositories for includes.
+
+The pipeline sets up some common attributes including one called `code` which you can use to reference the root of all the cloned Git repositories from the `document-repository` property. So, assuming you wanted to reference one of the bits of configuration or code - let's say you have a file called `src/main/java/Main.java` - from `your-org/code-repo-1`, then you can include `{code}/code-repo-1/src/main/java/Main.java` in your Asciidoctor book chapters.
+

@@ -534,8 +534,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="paragraph">
 <p>The entry point into the whole thing is the  <a href="https://github.com/bootiful-asciidoctor/sample-pipeline"><code>sample-pipeline</code></a>. You can clone that for a working example. I&#8217;ll break down the relevant bits.</p>
 </div>
+<div class="sect2">
+<h3 id="_the_maven_build">The Maven Build</h3>
 <div class="paragraph">
-<p>First, look at the <code>pom.xml</code>. You&#8217;ll notice that most of the configuration is in the build itself. There are a few things of note. First, the build includes the the Spring Batch <code>Job</code> in the following Maven dependency:</p>
+<p>First, look at the <code>pom.xml</code>. You&#8217;ll notice that most of the configuration is in the build itself. This is a stock-standard Spring Boot application with nothing else in it. There&#8217;s no reason you couldn&#8217;t add to it, of course, and that&#8217;s part of the charm! This whole pipeline is just delivered as an autoconfiguration. The sky&#8217;s the limit! There are a few things of note. First, the build includes the the Spring Batch <code>Job</code> in the following Maven dependency:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -622,12 +624,64 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 &lt;/plugin&gt;</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>Alright, that&#8217;s most of the weirdness. At this point it&#8217;s just using any other Spring Boot autoconfiguration. You have two extensibility planes: configuration properties such as those in <code>application.properties</code> and Spring itself.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_configuration_properties">Configuration Properties</h3>
+<div class="paragraph">
+<p>You can get a working pipeline with a very small amount of configuration.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-properties" data-lang="properties"># <b class="conum">(1)</b>
+pipeline.job.root=${HOME}/Desktop/root
+
+# <b class="conum">(2)</b>
+pipeline.job.target=${HOME}/Desktop/target
+
+# <b class="conum">(3)</b>
+pipeline.job.book-name=My Book
+
+# <b class="conum">(4)</b>
+pipeline.job.document-repository=https://github.com/your-org/your-docs.git
+
+# <b class="conum">(5)</b>
+pipeline.job.include-repositories=\
+  https://github.com/your-org/code-repo-1.git,\
+  https://github.com/your-org/code-repo-2.git</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>This tells the pipeline where to do its work. It has to make a mess somewhere. Where should it be?</p>
+</li>
+<li>
+<p>This tells the pipeline where to dump out its produced files</p>
+</li>
+<li>
+<p>This is an alias for <code>publication.book-name</code>.</p>
+</li>
+<li>
+<p>This tells the pipeline where to find the <code>.adoc</code> files for your book itself. I usually keep <code>index.adoc</code> at the root of this repository. You can see this <a href="https://github.com/bootiful-asciidoctor/sample-book">sample repository</a> for something to clone. It includes a sample Asciidoctor book with some code includes, a cover, a table-of-contents, styling for EPub and PDF, and more.</p>
+</li>
+<li>
+<p>This tells the pipeline which repositories should be cloned <em>before</em> the book is produced so that the documents in the <code>document-repository</code> can reference files in the cloned repositories for includes.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The pipeline sets up some common attributes including one called <code>code</code> which you can use to reference the root of all the cloned Git repositories from the <code>document-repository</code> property. So, assuming you wanted to reference one of the bits of configuration or code - let&#8217;s say you have a file called <code>src/main/java/Main.java</code> - from <code>your-org/code-repo-1</code>, then you can include <code>{code}/code-repo-1/src/main/java/Main.java</code> in your Asciidoctor book chapters.</p>
+</div>
+</div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-09-13 17:24:04 -0700
+Last updated 2020-09-13 18:05:58 -0700
 </div>
 </div>
 </body>
