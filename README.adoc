@@ -1,5 +1,4 @@
 = Bootiful Asciidoctor
-
 Josh Long <josh@joshlong.com>
 v1.0, 2020-09-09
 
