@@ -797,6 +797,39 @@ public class SamplePipelineApplication {
 </div>
 </div>
 <div class="sect1">
+<h2 id="_repository_clones">Repository Clones</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The pipeline delegates to instances of <code>GitCloneCallback</code> to handle cloning Git repositories. The default implementation assumes that the Git repository is wide-open, and unauthenticted, automatically configuring an instance of <code>PublicGitCloneCallback</code>.</p>
+</div>
+<div class="paragraph">
+<p>If you want to authenticate using a username and password, then define a bean of type <code>CredentialsProvider</code> in the context.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">    @Bean
+    UsernamePasswordCredentialsProvider usernamePasswordCredentialsProvider(@Value("${GIT_USERNAME}") String user,//<b class="conum">(1)</b>
+            @Value("${GIT_PASSWORD}") String pw) {//<b class="conum">(2)</b>
+        return new UsernamePasswordCredentialsProvider(user, pw);
+    }</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>The <code>GIT_USERNAME</code> environment variable might be, for example, you Github username</p>
+</li>
+<li>
+<p>The <code>GIT_PASSWORD</code> environment variable might be, for example, your Github personal access token.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Alternatively, if you want to authenticate using SSH, you&#8217;ll need to define a bean of type <code>TransportConfigCallback</code>. There are some convenient methods - <code>com.joshlong.git.GitUtils.createSshTransportConfigCallback</code> - that you can use to make shorter work of building a new instance of this type.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_document_publication">Document Publication</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -818,15 +851,29 @@ pipeline.job.publishers.git.repository=https://github.com/your-org/your-artifact
 </div>
 </div>
 <div class="paragraph">
-<p>You&#8217;ll also need to specify an implementation of a <code>PushCommandCreator</code>, which is an SPI callback. A client is given a reference to a JGit <code>Git</code> repository and can then authenticate and stipulate whatever else it wants to authenticate successfully. I have a bunch of convenient static helpers in a class called <code>com.joshlong.git.GitUtils</code>. If you&#8217;re using HTTP authentication for Github, for example, then the configuration could be as simple as this:</p>
+<p>If you want to authenticate using a username and password, then define a bean of type <code>CredentialsProvider</code> in the context.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">	@Bean
-	PushCommandCreator pushCommandCreator(@Value("${GIT_USERNAME}") String user, @Value("${GIT_PERSONAL_ACCESS_TOKEN}") String pw) {
-		return GitUtils.createHttpPushCommandCreator(user, pw);
-	}</code></pre>
+<pre class="highlight"><code class="language-java" data-lang="java">    @Bean
+    UsernamePasswordCredentialsProvider usernamePasswordCredentialsProvider(@Value("${GIT_USERNAME}") String user,//<b class="conum">(1)</b>
+            @Value("${GIT_PASSWORD}") String pw) {//<b class="conum">(2)</b>
+        return new UsernamePasswordCredentialsProvider(user, pw);
+    }</code></pre>
 </div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>The <code>GIT_USERNAME</code> environment variable might be, for example, you Github username</p>
+</li>
+<li>
+<p>The <code>GIT_PASSWORD</code> environment variable might be, for example, your Github personal access token.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Alternatively, if you want to authenticate using SSH, you&#8217;ll need to define a bean of type <code>TransportConfigCallback</code>. There are some convenient methods - <code>com.joshlong.git.GitUtils.createSshTransportConfigCallback</code> - that you can use to make shorter work of building a new instance of this type.</p>
 </div>
 </div>
 <div class="sect2">
@@ -847,13 +894,41 @@ pipeline.job.publishers.s3.bucket-name=bootiful-asciidoctor</code></pre>
 <p>These properties configure an <code>AmazonS3</code> client from the official AWS Amazon S3 client SDK. There are, as always, <em>many</em> ways to authenticate wit Amazon. If you want to use a service principal or something else, then feel free to provide a bean of type <code>AmazonS3</code> in the application context that&#8217;s so configured, and the <code>DocumentPublisher</code> Spring Boot autoconfiguration will defer to that one instead.</p>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_other_publishers">Other Publishers</h3>
+<div class="paragraph">
+<p>I&#8217;d like to expand the assortment of publishers. It&#8217;s not hard to see the opportunities:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Artifactory or Nexus</p>
+</li>
+<li>
+<p>attachments in ane email</p>
+</li>
+<li>
+<p>Github Packages</p>
+</li>
+<li>
+<p>an FTP service</p>
+</li>
+<li>
+<p>Dropbox</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You get the idea. Literally infinite potential. Just a matter of time and will.</p>
+</div>
+</div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
 Version 1.0<br>
-Last updated 2020-09-13 19:06:46 -0700
+Last updated 2020-09-13 21:14:31 -0700
 </div>
 </div>
 </body>

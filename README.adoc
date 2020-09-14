@@ -237,6 +237,25 @@ public class SamplePipelineApplication {
 
 You don't need to provide either of these `ApplicationListener` beans, however. A `public static void main` and voilà: a pipeline! Run the main class in your project and give it a few seconds or minutes and then inspect the output directory. The application configures a thread pool that keeps the Java process running a little longer than the job that depends on it. Your pipeline might finish many seconds before the Java process itself finishes.
 
+== Repository Clones
+
+The pipeline delegates to instances of `GitCloneCallback` to handle cloning Git repositories. The default implementation assumes that the Git repository is wide-open, and unauthenticted, automatically configuring an instance of `PublicGitCloneCallback`.
+
+If you want to authenticate using a username and password, then define a bean of type `CredentialsProvider` in the context.
+
+[source,java]
+----
+    @Bean
+    UsernamePasswordCredentialsProvider usernamePasswordCredentialsProvider(@Value("${GIT_USERNAME}") String user,//<1>
+            @Value("${GIT_PASSWORD}") String pw) {//<2>
+        return new UsernamePasswordCredentialsProvider(user, pw);
+    }
+----
+<1> The `GIT_USERNAME` environment variable might be, for example, you Github username
+<2> The `GIT_PASSWORD` environment variable might be, for example, your Github personal access token.
+
+Alternatively, if you want to authenticate using SSH, you'll need to define a bean of type `TransportConfigCallback`. There are some convenient methods - `com.joshlong.git.GitUtils.createSshTransportConfigCallback` - that you can use to make shorter work of building a new instance of this type.
+
 == Document Publication
 
 We've just looked at the flow, and we assumed you have access to the directory where the pipeline dumped the files - whatever directory you specified in `pipeline.job.target`. This assumption's invalid in most CI environments, so you'll want to have those artifacts uploaded somewhere.
@@ -254,15 +273,20 @@ pipeline.job.publishers.git.artifact-branch=artifacts
 pipeline.job.publishers.git.repository=https://github.com/your-org/your-artifact-repo.git
 ----
 
-You'll also need to specify an implementation of a `PushCommandCreator`, which is an SPI callback. A client is given a reference to a JGit `Git` repository and can then authenticate and stipulate whatever else it wants to authenticate successfully. I have a bunch of convenient static helpers in a class called `com.joshlong.git.GitUtils`. If you're using HTTP authentication for Github, for example, then the configuration could be as simple as this:
+If you want to authenticate using a username and password, then define a bean of type `CredentialsProvider` in the context.
 
 [source,java]
 ----
-	@Bean
-	PushCommandCreator pushCommandCreator(@Value("${GIT_USERNAME}") String user, @Value("${GIT_PERSONAL_ACCESS_TOKEN}") String pw) {
-		return GitUtils.createHttpPushCommandCreator(user, pw);
-	}
+    @Bean
+    UsernamePasswordCredentialsProvider usernamePasswordCredentialsProvider(@Value("${GIT_USERNAME}") String user,//<1>
+            @Value("${GIT_PASSWORD}") String pw) {//<2>
+        return new UsernamePasswordCredentialsProvider(user, pw);
+    }
 ----
+<1> The `GIT_USERNAME` environment variable might be, for example, you Github username
+<2> The `GIT_PASSWORD` environment variable might be, for example, your Github personal access token.
+
+Alternatively, if you want to authenticate using SSH, you'll need to define a bean of type `TransportConfigCallback`. There are some convenient methods - `com.joshlong.git.GitUtils.createSshTransportConfigCallback` - that you can use to make shorter work of building a new instance of this type.
 
 
 === Amazon S3 Bucket Publication
@@ -279,5 +303,19 @@ pipeline.job.publishers.s3.bucket-name=bootiful-asciidoctor
 ----
 
 These properties configure an `AmazonS3` client from the official AWS Amazon S3 client SDK. There are, as always, _many_ ways to authenticate wit Amazon. If you want to use a service principal or something else, then feel free to provide a bean of type `AmazonS3` in the application context that's so configured, and the `DocumentPublisher` Spring Boot autoconfiguration will defer to that one instead.
+
+
+
+=== Other Publishers
+
+I'd like to expand the assortment of publishers. It's not hard to see the opportunities:
+
+* Artifactory or Nexus
+* attachments in ane email
+* Github Packages
+* an FTP service
+* Dropbox
+
+You get the idea. Literally infinite potential. Just a matter of time and will.
 
 
