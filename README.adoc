@@ -42,9 +42,31 @@ Let's look at a working sample that I've built called https://github.com/bootifu
 
 === The Maven Build
 
-First, look at the `pom.xml`. You'll notice that most of the configuration is in the build itself. This sample is a stock-standard Spring Boot application with nothing else in it. There's no reason you couldn't add to it, of course, and that's part of the charm! This whole pipeline is an autoconfiguration. The sky's the limit! There are a few things of note. First, the build includes the Spring Batch `Job` in the following Maven dependency:
+First, look at the `pom.xml`. You'll notice that most of the configuration is in the build itself. This sample is a stock-standard Spring Boot application with nothing else in it. There's no reason you couldn't add to it, of course, and that's part of the charm! This whole pipeline is an autoconfiguration. The sky's the limit! There are a few things of note.
 
-*  `bootiful.asciidoctor`  : `asciidoctor-publication-job` : `0.0.1-SNAPSHOT`
+First, the build sits on top of Spring Batch, and Spring Batch assumes a SQL `DataSource` present somewhere in the context so that it can persist metadata tables associated with the versioning and execution state of the job instances. The goal is that if something goes wrong, you'll be able to inspect the table metadata and see what happened or even intervene. If you don't want to configure a SQL database, it's fine. Just add an in-memory, embedded, stateless SQL database like H2 to your build and Spring Boot will configure a `DataSource` bean for you:
+
+[source,xml]
+----
+<dependency>
+    <groupId>com.h2database</groupId>
+    <artifactId>h2</artifactId>
+    <scope>runtime</scope>
+</dependency>
+----
+
+Second, the build includes the Spring Batch `Job` in the following Maven dependency:
+
+[source,xml]
+----
+<dependency>
+    <groupId>bootiful.asciidoctor</groupId>
+    <artifactId>asciidoctor-publication-job</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+</dependency>
+
+----
+
 
 This is not on Maven central, so you could either build the code yourself or use my Artifact repository, as I did. Here's the relevant Maven configuration. There is an equivalent configuration for Gradle.
 

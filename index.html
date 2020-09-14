@@ -544,14 +544,31 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_the_maven_build">The Maven Build</h3>
 <div class="paragraph">
-<p>First, look at the <code>pom.xml</code>. You&#8217;ll notice that most of the configuration is in the build itself. This sample is a stock-standard Spring Boot application with nothing else in it. There&#8217;s no reason you couldn&#8217;t add to it, of course, and that&#8217;s part of the charm! This whole pipeline is an autoconfiguration. The sky&#8217;s the limit! There are a few things of note. First, the build includes the Spring Batch <code>Job</code> in the following Maven dependency:</p>
+<p>First, look at the <code>pom.xml</code>. You&#8217;ll notice that most of the configuration is in the build itself. This sample is a stock-standard Spring Boot application with nothing else in it. There&#8217;s no reason you couldn&#8217;t add to it, of course, and that&#8217;s part of the charm! This whole pipeline is an autoconfiguration. The sky&#8217;s the limit! There are a few things of note.</p>
 </div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>bootiful.asciidoctor</code>  : <code>asciidoctor-publication-job</code> : <code>0.0.1-SNAPSHOT</code></p>
-</li>
-</ul>
+<div class="paragraph">
+<p>First, the build sits on top of Spring Batch, and Spring Batch assumes a SQL <code>DataSource</code> present somewhere in the context so that it can persist metadata tables associated with the versioning and execution state of the job instances. The goal is that if something goes wrong, you&#8217;ll be able to inspect the table metadata and see what happened or even intervene. If you don&#8217;t want to configure a SQL database, it&#8217;s fine. Just add an in-memory, embedded, stateless SQL database like H2 to your build and Spring Boot will configure a <code>DataSource</code> bean for you:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">&lt;dependency&gt;
+    &lt;groupId&gt;com.h2database&lt;/groupId&gt;
+    &lt;artifactId&gt;h2&lt;/artifactId&gt;
+    &lt;scope&gt;runtime&lt;/scope&gt;
+&lt;/dependency&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Second, the build includes the Spring Batch <code>Job</code> in the following Maven dependency:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">&lt;dependency&gt;
+    &lt;groupId&gt;bootiful.asciidoctor&lt;/groupId&gt;
+    &lt;artifactId&gt;asciidoctor-publication-job&lt;/artifactId&gt;
+    &lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>This is not on Maven central, so you could either build the code yourself or use my Artifact repository, as I did. Here&#8217;s the relevant Maven configuration. There is an equivalent configuration for Gradle.</p>
@@ -928,7 +945,7 @@ pipeline.job.publishers.s3.bucket-name=bootiful-asciidoctor</code></pre>
 <div id="footer">
 <div id="footer-text">
 Version 1.0<br>
-Last updated 2020-09-13 21:20:15 -0700
+Last updated 2020-09-13 21:32:55 -0700
 </div>
 </div>
 </body>
