@@ -1,5 +1,9 @@
 = Bootiful Asciidoctor
 
+Josh Long <josh@joshlong.com>
+v1.0, 2020-09-09
+
+:toc:
 
 This project is a pipeline designed to support the easy creation of code-centric, technical books like http://ReactiveSpring.io[_Reactive Spring_], whose pipeline was mostly an automated AsciidoctorJ Spring Boot application.
 
