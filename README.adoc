@@ -267,11 +267,11 @@ If you want to authenticate using a username and password, then define a bean of
 
 [source,java]
 ----
-    @Bean
-    UsernamePasswordCredentialsProvider usernamePasswordCredentialsProvider(@Value("${GIT_USERNAME}") String user,//<1>
-            @Value("${GIT_PASSWORD}") String pw) {//<2>
-        return new UsernamePasswordCredentialsProvider(user, pw);
-    }
+@Bean
+UsernamePasswordCredentialsProvider usernamePasswordCredentialsProvider(@Value("${GIT_USERNAME}") String user,//<1>
+        @Value("${GIT_PASSWORD}") String pw) {//<2>
+    return new UsernamePasswordCredentialsProvider(user, pw);
+}
 ----
 <1> The `GIT_USERNAME` environment variable might be, for example, you Github username
 <2> The `GIT_PASSWORD` environment variable might be, for example, your Github personal access token.
