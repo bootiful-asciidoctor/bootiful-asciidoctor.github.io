@@ -38,7 +38,7 @@ This project aims to fix those many issues and provide a foundation for new feat
 
 == Usage
 
-The entry point into the whole thing is the  https://github.com/bootiful-asciidoctor/sample-pipeline[`sample-pipeline`]. You can clone that for a working example. I'll break down the relevant bits.
+Let's look at a working sample that I've built called https://github.com/bootiful-asciidoctor/sample-pipeline[`sample-pipeline`]. You can clone that for a working example. I'll break down the relevant bits here so you can see what differentiates this from any other stock-standard Spring Boot build. The `sample-pipeline` in turn builds a book based on the documents in the https://github.com/bootiful-asciidoctor/sample-book[`sample-book`].
 
 === The Maven Build
 
