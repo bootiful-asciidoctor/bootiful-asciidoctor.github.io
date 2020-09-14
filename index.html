@@ -459,7 +459,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h2 id="_motivations">Motivations</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>In order to understand what this project provides, let&#8217;s examine what the first cut at the publication pipeline provided for me, and then we can see what might be improved.</p>
+<p>To understand what this project provides, let&#8217;s examine the first cut at the publication pipeline provided for me, and then we can see what might be improved.</p>
 </div>
 <div class="paragraph">
 <p>The original flow looked like this:</p>
@@ -467,13 +467,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="ulist">
 <ul>
 <li>
-<p>git clone all the code that would be included into the book. For my <em>Reactive Spring</em> book, these came from the <a href="http://github.com/reactive-spring-book"><code>reactive-spring-book</code></a> organization. I kept these in an OSS, Apache 2 licensed and accessible for for everyone to consume. The code isn&#8217;t the most interesting bit, after all.</p>
+<p><code>git clone</code> all the code included in the book. For my <em>Reactive Spring</em> book, these came from the <a href="http://github.com/reactive-spring-book"><code>reactive-spring-book</code></a> organization. I kept these in an OSS, Apache 2 licensed and accessible for everyone to consume. The code isn&#8217;t the most exciting bit, after all.</p>
 </li>
 <li>
 <p>That would be the book itself. So, the next step `git clone`s the book&#8217;s docs, as well.</p>
 </li>
 <li>
-<p>then I ran the <a href="https://github.com/bootiful-asciidoctor/asciidoctor-autoconfiguration">Spring Boot Asciidoctor autoconfiguration</a>. The autoconfiguration does a ton of the drudgery involved in using Asciidoctor to convert <code>.adoc</code> files into five different output formats: prepress-ready <code>.PDF</code>, screen-ready <code>.PDF</code>, <code>.html</code>, <code>.epub</code>, and <code>.mobi</code>.</p>
+<p>then I ran the <a href="https://github.com/bootiful-asciidoctor/asciidoctor-autoconfiguration">Spring Boot Asciidoctor autoconfiguration</a>. The autoconfiguration does a ton of the struggle involved in using Asciidoctor to convert <code>.adoc</code> files into five different output formats: prepress-ready <code>.PDF</code>, screen-ready <code>.PDF</code>, <code>.html</code>, <code>.epub</code>, and <code>.mobi</code>.</p>
 </li>
 <li>
 <p>the next step was to take the output artifacts, then push the results to a place where I could collect them. The thing I used was a branch in a Git repository.</p>
@@ -481,30 +481,30 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </div>
 <div class="paragraph">
-<p>This process worked. I finished the book! It worked well, in fact. That said, there were some issues.</p>
+<p>This process worked. I finished the book! It worked <em>well</em>. That said, there were some issues.</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>There are multiple code repositories - more than a dozen discrete Git repositories that needed to be cloned before the book could be successfully run. I did this in a Bash for-loop, one after the other. This kind of work is what we call embarassingly parallel. There&#8217;s no reason we couldn&#8217;t do all that stuff concurrently. As it was, this stage in the process took a minute or more.</p>
+<p>There are multiple code repositories - more than a dozen discrete Git repositories that the pipeline needs to clone before the book can successfully run. I did this in a Bash for-loop, one after the other. This kind of work is what we call embarrassingly parallel. There&#8217;s no reason we couldn&#8217;t do all that stuff concurrently. As it was, this stage in the process took a minute or more.</p>
 </li>
 <li>
-<p>The autoconfiguration was also serialized. I invoked one <code>DocumentProducer</code> after the other. This was very valuable in the beginning when I was trying to figure out AsciidoctorJ and iron out the kinks in the pipeline because it made it easier to debug everything. Now, these five conversions could also be concurrent.</p>
+<p>The autoconfiguration was also serialized. I invoked one <code>DocumentProducer</code> after the other. The serialization was very valuable when I tried to figure AsciidoctorJ and iron out the kinks in the pipeline because it made it easier to debug everything. Now, these five conversions could also be concurrent.</p>
 </li>
 <li>
-<p>The last step in the process - stashing the output documents somewhere so that I could download them and then upload them to Amazon KDP, Leanpub.com, etc - should be a bit more flexible. I stashed them in a branch on a private Git repository using some Bash scripting. There&#8217;s no reason they couldn&#8217;t have been sent to me by email, or uploaded to an Amazon S3 bucket.</p>
+<p>The last step in the process - stashing the output documents somewhere so that I could download them and then upload them to Amazon KDP, Leanpub.com, etc. - should be a bit more flexible. I stashed them in a branch on a private Git repository using some Bash scripting. There&#8217;s no reason they couldn&#8217;t have been sent to me by email or uploaded to an Amazon S3 bucket.</p>
 </li>
 <li>
 <p>The whole pipeline was in Travis CI. I&#8217;ve moved virtually everything on which I&#8217;m continually working to Github Actions <em>except</em> the book. I was so worried about trying to recreate the spaghetti code pipeline in a new environment, particularly when I could be spending that time trying to ship the final edition of this book that ended up taking me two years to finish.</p>
 </li>
 <li>
-<p>In addition the result was a combination of Bash scripting and Java code that sort of interleaved to give us the final result. It became harder and harder to reproduce the flow on my local machine.</p>
+<p>Also, the result was a combination of Bash scripting and Java code that interleaved to give us the final result. It became harder and harder to reproduce the flow on my local machine.</p>
 </li>
 <li>
-<p>The whole thing - because it lacked concurrency - took <em>forever</em>! It took something like eight minutes on the Travis CI. That&#8217;s in addition to Travis CI&#8217;s inherit slowness. Have you noticed how fast out the gate Github Actions is? It&#8217;s <em>crazy</em>! I type <code>git push</code> and refresh the Github Actions browser page and it&#8217;s <em>already</em> processing! <strong>Thank you</strong> Github.</p>
+<p>The whole thing - because it lacked concurrency - took <em>forever</em>! It took something like eight minutes on the Travis CI. That&#8217;s in addition to Travis CI&#8217;s inherent slowness. Have you noticed how fast out the gate Github Actions is? It&#8217;s <em>crazy</em>! I type <code>git push</code> and refresh the Github Actions browser page, and it&#8217;s <em>already</em> processing! <strong>Thank you</strong> Github.</p>
 </li>
 <li>
-<p>Storing multi megabyte pdf documents and output artifacts in a Git repository isn&#8217;t great. We can and should do better.</p>
+<p>Storing multi-megabyte <code>.pdf</code> documents and output artifacts in a Git repository isn&#8217;t a great approach. We can and should do better.</p>
 </li>
 </ul>
 </div>
@@ -514,22 +514,22 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Improved flow control with Spring Batch</strong>: it uses Spring Batch to describe the flow of the pipeline. Spring Batch gives us a lot of benefits including auditability and a powerful DSL to describe concurrent stages and serial stages. It&#8217;s also Spring, so we can leverage all of Java in the normal ways. I suppose I could&#8217;ve also used a workflow engine like Flowable in this case. Either way, the result is <em>way</em> faster even though - technically, underneath the hood - there&#8217;s a lot more going on.</p>
+<p><strong>Improved flow control with Spring Batch</strong>: it uses Spring Batch to describe the pipeline&#8217;s flow. Spring Batch gives us many benefits, including audibility and a powerful DSL to describe concurrent stages and serial stages. It&#8217;s also Spring so that we can leverage all of Java in normal ways. I suppose I could&#8217;ve also used a workflow engine like Flowable in this case. Either way, the result is <em>way</em> faster even though - technically, underneath the hood - there&#8217;s a lot more going on.</p>
 </li>
 <li>
 <p><strong>Smarter Git integration</strong>: the old flow used Bash for all the Git interactions - cloning and pushing. This new project extracts those out into individual stages and leverages the wonderful <a href="https://github.com/eclipse/jgit">JGit project</a>.</p>
 </li>
 <li>
-<p><strong>Easier configuration</strong> The last stage - where we publish the documents to some terminus - is a great opportunity for strategies that can be activated or deactivated with Spring Boot configuration. The entire pipeline, come to think of it, benefits from Spring Boot configuration. There are a ton of things that need to be specified in the pipeline: SSH or HTTP Git authentication credentials. Amazon S3 credentials. The workspace in whcih the documents should be built and converted. The list goes on, and it&#8217;s nice to have Spring Boot&#8217;s imminently flexible support here.</p>
+<p><strong>Easier configuration</strong> The last stage - where we publish the documents to some terminus - is an excellent opportunity for strategies that can be activated or deactivated with Spring Boot configuration. The entire pipeline, come to think of it, benefits from Spring Boot configuration. There are a ton of things to specify in the pipeline: SSH or HTTP Git authentication credentials. Amazon S3 credentials. The workspace in which the pipeline will generate the documents. The list goes on, and it&#8217;s nice to have Spring Boot&#8217;s imminently flexible support here.</p>
 </li>
 <li>
-<p><strong>More dynamic control flow</strong>: I feel like this merely restates the point about improved flow control and easier configuration differently, but it&#8217;s important: it&#8217;s <em>much</em> easier to use loops, if/else, while loops, and recursion from Java and Spring then it is from Bash. We can dynamically add functionality to stages or indeed dynamically add stages to the pipeline, all in response to extenal configuration or changing dynamics.</p>
+<p><strong>More dynamic control flow</strong>: I feel like this merely restates the point about improved flow control and more straightforward configuration differently, but it&#8217;s crucial: it&#8217;s <em>much</em> easier to use loops, if/else, while loops, and recursion from Java and Spring then it is from Bash. We can dynamically add functionality to stages or dynamically add stages to the pipeline, all in response to external configuration or changing dynamics.</p>
 </li>
 <li>
-<p><strong>Convention over configuration</strong>: Asciidoctor and Spring are vast, infinite in their possibilities. The process of publishing a technical book, on the other hand, is a known quanitity. This new pipeline adopts some conventions - well known attributes to refer to the code repository, assumptions about the styling of the book, etc. - to reduce to a handful of configuration options what turns out to be a dozen or so configuration options otherwise. Additionally, this project takes advantage of Spring Boot autoconfiguration to respond to classes, properties, etc. You should be able to get a new book pipeline up and running in a matter of minutes.</p>
+<p><strong>Convention over configuration</strong>: Asciidoctor and Spring are vast, infinite in their possibilities. The process of publishing a technical book, on the other hand, is a known quantity. This new pipeline adopts some conventions - well-known attributes to refer to the code repository, assumptions about the book&#8217;s styling, etc. - to reduce to a handful of configuration options what turns out to be a dozen configuration options otherwise. Additionally, this project takes advantage of Spring Boot autoconfiguration to respond to classes, properties, etc. You should be able to get a new book pipeline up and running in a matter of minutes.</p>
 </li>
 <li>
-<p><strong>Integration and Isolation</strong>: So, the meat of this pipeline is based on AsciidoctorJ, which is basically the Ruby Asciidoctor-gem turned into a Java <code>.jar</code> with JRuby. The Asciidoctor gem in turn loads other gems like <code>asciidoctor-pdf</code> and <code>asciidoctor-epub3</code>. The combinations of these things makes life interesting from a classloader, Maven and Java class compatability perspective. This project handles as much of that as possible for you and documents the rest.</p>
+<p><strong>Integration and Isolation</strong>: So, the meat of this pipeline is AsciidoctorJ, which is the Ruby Asciidoctor-gem turned into a Java <code>.jar</code> with JRuby. The Asciidoctor gem, in turn, loads other gems like <code>asciidoctor-pdf</code> and <code>asciidoctor-epub3</code>. The combinations of these things make life enjoyable from a classloader, Maven, and Java class compatibility perspective. This project handles as much of that as possible for you and documents the rest.</p>
 </li>
 </ul>
 </div>
@@ -544,7 +544,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_the_maven_build">The Maven Build</h3>
 <div class="paragraph">
-<p>First, look at the <code>pom.xml</code>. You&#8217;ll notice that most of the configuration is in the build itself. This is a stock-standard Spring Boot application with nothing else in it. There&#8217;s no reason you couldn&#8217;t add to it, of course, and that&#8217;s part of the charm! This whole pipeline is just delivered as an autoconfiguration. The sky&#8217;s the limit! There are a few things of note. First, the build includes the the Spring Batch <code>Job</code> in the following Maven dependency:</p>
+<p>First, look at the <code>pom.xml</code>. You&#8217;ll notice that most of the configuration is in the build itself. This sample is a stock-standard Spring Boot application with nothing else in it. There&#8217;s no reason you couldn&#8217;t add to it, of course, and that&#8217;s part of the charm! This whole pipeline is an autoconfiguration. The sky&#8217;s the limit! There are a few things of note. First, the build includes the Spring Batch <code>Job</code> in the following Maven dependency:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -554,7 +554,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </div>
 <div class="paragraph">
-<p>This is not on Maven central so you could either build the code yourelf or just use my Artifact repository, as I did. Here&#8217;s the relevant Maven configuration. There is equivalent configuration for Gradle.</p>
+<p>This is not on Maven central, so you could either build the code yourself or use my Artifact repository, as I did. Here&#8217;s the relevant Maven configuration. There is an equivalent configuration for Gradle.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -601,7 +601,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="paragraph">
-<p>Also, there is some weirdness associated with the interaction between JRuby, AsciidoctorJ, JRuby loading JRuby gems, and the way Spring Boot packages <code>.jar</code> artifacts within other <code>.jar</code> in the Spring Boot Maven plugin. I had to tell Spring Boot&#8217;s Maven plugin to not pack a few <code>.jar</code> artifacts in the same way as it does everything else.</p>
+<p>Also, there is some weirdness associated with the interaction between JRuby, AsciidoctorJ, JRuby loading JRuby gems, and the way Spring Boot packages <code>.jar</code> artifacts within other <code>.jar</code> in the Spring Boot Maven plugin. I had to tell Spring Boot&#8217;s Maven plugin not to pack a few <code>.jar</code> artifacts in the same way as it does everything else.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -632,7 +632,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="paragraph">
-<p>Alright, that&#8217;s most of the weirdness. At this point it&#8217;s just using any other Spring Boot autoconfiguration. You have two extensibility planes: configuration properties such as those in <code>application.properties</code> and Spring itself.</p>
+<p>Alright, that&#8217;s most of the weirdness. At this point, it&#8217;s just using any other Spring Boot autoconfiguration. You have two extensibility planes: configuration properties such as those in <code>application.properties</code> and Spring itself.</p>
 </div>
 </div>
 <div class="sect2">
@@ -663,16 +663,16 @@ pipeline.job.include-repositories=\
 <div class="colist arabic">
 <ol>
 <li>
-<p>This tells the pipeline where to do its work. It has to make a mess somewhere. Where should it be?</p>
+<p>This tells the pipeline where it should do its work. It has to make a mess somewhere. Where should it be?</p>
 </li>
 <li>
-<p>This tells the pipeline where to dump out its produced files</p>
+<p>This tells the pipeline where it should dump out its produced files.</p>
 </li>
 <li>
 <p>This is an alias for <code>publication.book-name</code>.</p>
 </li>
 <li>
-<p>This tells the pipeline where to find the <code>.adoc</code> files for your book itself. I usually keep <code>index.adoc</code> at the root of this repository. You can see this <a href="https://github.com/bootiful-asciidoctor/sample-book">sample repository</a> for something to clone. It includes a sample Asciidoctor book with some code includes, a cover, a table-of-contents, styling for EPub and PDF, and more.</p>
+<p>This tells the pipeline where to find the <code>.adoc</code> files for your book itself. I usually keep <code>index.adoc</code> at the root of this repository. You can see this <a href="https://github.com/bootiful-asciidoctor/sample-book">sample repository</a> for something to clone. It includes a sample Asciidoctor book with some interesting samples, including a cover, code inclusions, a table-of-contents, styling for EPub and PDF, etc.</p>
 </li>
 <li>
 <p>This tells the pipeline which repositories should be cloned <em>before</em> the book is produced so that the documents in the <code>document-repository</code> can reference files in the cloned repositories for includes.</p>
@@ -680,16 +680,16 @@ pipeline.job.include-repositories=\
 </ol>
 </div>
 <div class="paragraph">
-<p>The pipeline sets up some common attributes including one called <code>code</code> which you can use to reference the root of all the cloned Git repositories from the <code>document-repository</code> property. So, assuming you wanted to reference one of the bits of configuration or code - let&#8217;s say you have a file called <code>src/main/java/Main.java</code> - from <code>your-org/code-repo-1</code>, then you can include <code>{code}/code-repo-1/src/main/java/Main.java</code> in your Asciidoctor book chapters.</p>
+<p>The pipeline sets up some common attributes, including one called <code>code</code> which you can use to reference the root of all the cloned Git repositories from the <code>document-repository</code> property. So, assuming you wanted to reference one of the bits of configuration or code - let&#8217;s say you have a file called <code>src/main/java/Main.java</code> - from <code>your-org/code-repo-1</code>, then you can include <code>{code}/code-repo-1/src/main/java/Main.java</code> in your Asciidoctor book chapters.</p>
 </div>
 <div class="paragraph">
 <p>If you want to disable the pipeline as a whole, set <code>pipeline.job.enabled=false</code>.</p>
 </div>
 <div class="paragraph">
-<p>There are five <code>DocumentProducer</code> beans registered by default as part of the underlying <code>asciidoctor-autoconfiguration</code>. One of them, the <code>MobiProducer</code>, will fail when running anywhere but Linux as it relies on a Linux binary for <code>kindlegen</code>. If you have the MacOS-compatible binary, great. Use that. Otherwise, you may want to disable that particular <code>DocumentProducer</code> when running the pipeline on your local MacOS or Windows machine. Indeed, you may want to disable any or all of the <code>DocumentProducer</code> beans! There are five properties you can use to toggle them on or off.</p>
+<p>There are five <code>DocumentProducer</code> beans registered by default as part of the underlying <code>asciidoctor-autoconfiguration</code>. One of them, the <code>MobiProducer</code>, will fail when running anywhere but Linux as it relies on a Linux binary for <code>kindlegen</code>. Suppose you have the macOS-compatible binary, great. Use that. Otherwise, you may want to disable that particular <code>DocumentProducer</code> when running the pipeline on your local macOS or Windows machine. Indeed, you may want to disable any or all of the <code>DocumentProducer</code> beans! There are five properties you can use to toggle them on or off.</p>
 </div>
 <div class="paragraph">
-<p>Here are the five properties. Specify any of them and set them as false or true based on your particular use case. You could mix-and-match these properties with Spring profiles so that they&#8217;re disabled or enabled when running in your CI environment or otherwise not.</p>
+<p>Here are the five properties. Specify any of them and set them as <code>false</code> or <code>true</code> based on your particular use case. You could mix-and-match these properties with Spring profiles to conditionally activate them when running in your CI environment.</p>
 </div>
 <div class="ulist">
 <ul>
@@ -711,13 +711,13 @@ pipeline.job.include-repositories=\
 </ul>
 </div>
 <div class="paragraph">
-<p>If you&#8217;re running on MacOS, as I am, you&#8217;d specify <code>publication.mobi.enabled=false</code>.</p>
+<p>If you&#8217;re running on macOS, as I am, you&#8217;d specify <code>publication.mobi.enabled=false</code>.</p>
 </div>
 <div class="paragraph">
 <p>Remember, you could specify all of these properties through any mechanism Spring Boot provides, including environment variables.</p>
 </div>
 <div class="paragraph">
-<p>You might for example have the following enviropnment variable before you run the pipeline:</p>
+<p>You might, for example, have the following environment variable before you run the pipeline:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -731,7 +731,7 @@ pipeline.job.include-repositories=\
 <div class="sect2">
 <h3 id="_spring_boot_overrides_and_events">Spring Boot Overrides and Events</h3>
 <div class="paragraph">
-<p>Let&#8217;s look at a sample Spring Boot application that configures a few things beyond what we&#8217;ve loked at:</p>
+<p>Let&#8217;s look at a sample Spring Boot application that configures a few things beyond what we&#8217;ve looked at:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -783,15 +783,15 @@ public class SamplePipelineApplication {
 <div class="colist arabic">
 <ol>
 <li>
-<p>The pipeline publishes an  <code>ApplicationEvent</code> after the pipeline has produced all the documents. You can get the <code>source</code> of the event - a <code>Map&lt;String,Collection&lt;File&gt;&gt;</code> that contains a mapping of type of document to the output documents. So, for example, the HTML producer might produce two files: <code>index.html</code> and an <code>images</code> directory. The key for the map is a way to distinguish which file is which. The pipeline produces <em>two</em> <code>.pdf</code> files, for example. One for screen, and one for prepress.</p>
+<p>The pipeline publishes an  <code>ApplicationEvent</code> after the pipeline has produced all the documents. You can get the <code>source</code> of the event - a <code>Map&lt;String, Collection&lt;File&gt;&gt;</code> that contains a mapping of the document type to the output documents. For example, the HTML producer might produce two files: <code>index.html</code> and an <code>images</code> directory. The key for the map is a way to distinguish which file is which. The pipeline produces <em>two</em> <code>.pdf</code> files, for example. One for the screen, and one for prepress.</p>
 </li>
 <li>
-<p>Spring Batch, on top of which this pipeline is built, also publishes some interesting information through an event. You can ask the job how long it took to run, its exit status, etc.</p>
+<p>Spring Batch, on top of which this pipeline builds, also publishes some useful information through an event. You can ask the job how long it took to run, its exit status, etc.</p>
 </li>
 </ol>
 </div>
 <div class="paragraph">
-<p>You don&#8217;t need to provide either of these <code>ApplicationListener</code> beans, howeever. Literally a <code>public static void main</code> and you&#8217;re done.</p>
+<p>You don&#8217;t need to provide either of these <code>ApplicationListener</code> beans, however. A <code>public static void main</code> and voilà: a pipeline! Run the main class in your project and give it a few seconds or minutes and then inspect the output directory. The application configures a thread pool that keeps the Java process running a little longer than the job that depends on it. Your pipeline might finish many seconds before the Java process itself finishes.</p>
 </div>
 </div>
 </div>
@@ -800,15 +800,15 @@ public class SamplePipelineApplication {
 <h2 id="_document_publication">Document Publication</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>We&#8217;ve just looked at the flow and we assumed you have access to the directory where the files were dumped as part of the pipeline - whatever directory you specified in <code>pipeline.job.target</code>. This assumption&#8217;s invalid in most CI environments, so you&#8217;ll want to have those artifacts uploaded somewhere.</p>
+<p>We&#8217;ve just looked at the flow, and we assumed you have access to the directory where the pipeline dumped the files - whatever directory you specified in <code>pipeline.job.target</code>. This assumption&#8217;s invalid in most CI environments, so you&#8217;ll want to have those artifacts uploaded somewhere.</p>
 </div>
 <div class="paragraph">
-<p><code>DocumentPublisher</code> implementations help with this, taking the output of the build pipeline and publishing them somewhere for you to collect and inspect them.</p>
+<p><code>DocumentPublisher</code> implementations help with this, taking the build pipeline&#8217;s output and publishing them somewhere for you to collect and inspect them.</p>
 </div>
 <div class="sect2">
 <h3 id="_git_branch_publication">Git Branch Publication</h3>
 <div class="paragraph">
-<p>This is the simplest one to git working so you might want to start with this one. It clones a specified git repository, checks out a particular branch, then adds a directory for each output document type. Then, it adds the output artifacts intot hat directory, commits it, and pushes the branch - new artifacts and all - back to the Git repository. You&#8217;ll need to configure a few things - the Git repository and the branch - for this to work.</p>
+<p>The <code>GitBranchDocumentPublisher</code> is the most accessible, so you might want to start with it. It clones a specified git repository, checks out a particular branch, then adds a directory for each output document type. It then adds the output artifacts into that directory, commits it, and pushes the branch - new artifacts and all - back to the Git repository. You&#8217;ll need to configure a few things - the Git repository and the branch - for this to work.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -818,7 +818,7 @@ pipeline.job.publishers.git.repository=https://github.com/your-org/your-artifact
 </div>
 </div>
 <div class="paragraph">
-<p>You&#8217;ll also need to specify an implementation of a <code>PushCommandCreator</code>. This is an SPI callback in which a client is given a reference to a JGit <code>Git</code> repository and can then authenticate and stipulate whatever else it wants to handle successfully authenticating. I have a bunch of convenient static helpers in a class called <code>com.joshlong.git.GitUtils</code>. If you&#8217;re using HTTP authentication for Github, for example, then the configuration could be as simple as this:</p>
+<p>You&#8217;ll also need to specify an implementation of a <code>PushCommandCreator</code>, which is an SPI callback. A client is given a reference to a JGit <code>Git</code> repository and can then authenticate and stipulate whatever else it wants to authenticate successfully. I have a bunch of convenient static helpers in a class called <code>com.joshlong.git.GitUtils</code>. If you&#8217;re using HTTP authentication for Github, for example, then the configuration could be as simple as this:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -832,7 +832,7 @@ pipeline.job.publishers.git.repository=https://github.com/your-org/your-artifact
 <div class="sect2">
 <h3 id="_amazon_s3_bucket_publication">Amazon S3 Bucket Publication</h3>
 <div class="paragraph">
-<p>This <code>DocumentPublisher</code> that uploads an archive to an Amazon S3 bucket containig all the documents.</p>
+<p>This <code>DocumentPublisher</code> that uploads an archive to an Amazon S3 bucket containing all the documents.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -844,7 +844,7 @@ pipeline.job.publishers.s3.bucket-name=bootiful-asciidoctor</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This will configure an <code>AmazonS3</code> client from the official AWS Amazon S3 client SDK. There are, as always, <em>many</em> ways to authenticate wit Amazon. If you want to use a service principal or something else, then feel free to provide a bean of type <code>AmazonS3</code> in the application context that&#8217;s so configured and the <code>DocumentPublisher</code> will defer to that one isntead.</p>
+<p>These properties configure an <code>AmazonS3</code> client from the official AWS Amazon S3 client SDK. There are, as always, <em>many</em> ways to authenticate wit Amazon. If you want to use a service principal or something else, then feel free to provide a bean of type <code>AmazonS3</code> in the application context that&#8217;s so configured, and the <code>DocumentPublisher</code> Spring Boot autoconfiguration will defer to that one instead.</p>
 </div>
 </div>
 </div>
@@ -853,7 +853,7 @@ pipeline.job.publishers.s3.bucket-name=bootiful-asciidoctor</code></pre>
 <div id="footer">
 <div id="footer-text">
 Version 1.0<br>
-Last updated 2020-09-13 18:46:42 -0700
+Last updated 2020-09-13 19:06:46 -0700
 </div>
 </div>
 </body>
