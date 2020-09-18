@@ -204,6 +204,9 @@ export PUBLICATION_MOBI_ENABLED=false
 
 Then run the pipeline. That will override any value specified in your local `application.properties` or `application.yml`.
 
+==== PDF Compression 
+You may want to compress your PDF files. You can specify   `publication.pdf.screen.optimize=true` to optimize the screen-ready PDF, and `publication.pdf.prepress.optimize=true` to optimize the press-ready PDF. Specify this and the respective `DocumentProducer` will emit one regular and one optimized PDF. 
+
 === Spring Boot Overrides and Events
 
 Let's look at a sample Spring Boot application that configures a few things beyond what we've looked at:
