@@ -191,7 +191,7 @@ Here are the five properties. Specify any of them and set them as `false` or `tr
 * `publication.pdf.prepress.enabled`
 * `publication.pdf.screen.enabled`
 
-If you're running on macOS, as I am, you'd specify `publication.mobi.enabled=false`.
+All of these are enabled by default on Linux. The `MobiDocumentProducer` does not run unless it is on Linux. It'll automatically disable itself on any other operating system.
 
 Remember, you could specify all of these properties through any mechanism Spring Boot provides, including environment variables.
 
@@ -206,6 +206,17 @@ Then run the pipeline. That will override any value specified in your local `app
 
 ==== PDF Compression 
 You may want to compress your PDF files. You can specify   `publication.pdf.screen.optimize=true` to optimize the screen-ready PDF, and `publication.pdf.prepress.optimize=true` to optimize the press-ready PDF. Specify this and the respective `DocumentProducer` will emit one regular and one optimized PDF. 
+
+The pipeline shells out to the `asciidoctor-pdf-optimize` script which must be installed before it can be used. The http://github.com/bootiful-asciidoctor/sample-pipeline[`sample-pipeline`] is a good example on how to get everythign working on an Ubuntu machine before running the build. Here's the command to install everything required using the Ubuntu `apt` package management system. 
+
+[source,bash]
+----
+sudo apt install ghostscript  \
+  && sudo gem install asciidoctor 
+  && sudo gem install asciidoctor-pdf \
+  && sudo gem install rghost 
+        
+----
 
 === Spring Boot Overrides and Events
 
@@ -343,4 +354,37 @@ I'd like to expand the assortment of publishers. It's not hard to see the opport
 
 You get the idea. Literally infinite potential. Just a matter of time and will.
 
+== Running the build when you update the book 
 
+So, you've got everything installed and configured. You have the pipeline setup on one node. You have the `.adoc` files living in some other repository, and now you want to force the book to rebuild each time you change the `.adoc` repository. Unfortunately, Github Actions don't _yet_ have a way to force one build to happen whenever another changes. But we _can_ force our pipeline to run manually using a `repository_dispatch`. 
+
+You'll need to have https://github.com/settings/tokens[a Github Personal Access Token] - this is easy to do from your `Developer Settings` page in the `Settings` section of your account. Configure a Github Actions secret called `GH_PAT` in your https://docs.github.com/en/actions/reference/encrypted-secrets[repository's `Secrets`] section that contains your Github Personal Access Token.
+
+Then, configure a Github Action for the Github repository that contains your `.adoc` files. You can use the Github Action workflow in the `sample-book` repository as a foundation:
+
+
+[source.yml]
+----
+name: CI
+
+env:
+  PIPELINE_ORG_NAME: bootiful-asciidoctor
+  PIPELINE_REPO_NAME: sample-pipeline
+  GH_PAT: ${{ secrets.GH_PAT }}
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: ${GITHUB_WORKSPACE}/.github/workflows/trigger_book_build.sh 
+----
+
+This workflow will run whenever you `git push` the changes to your `.adoc` files. It in turn calls the following script
