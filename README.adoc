@@ -358,6 +358,8 @@ You get the idea. Literally infinite potential. Just a matter of time and will.
 
 So, you've got everything installed and configured. You have the pipeline setup on one node. You have the `.adoc` files living in some other repository, and now you want to force the book to rebuild each time you change the `.adoc` repository. Unfortunately, Github Actions don't _yet_ have a way to force one build to happen whenever another changes. But we _can_ force our pipeline to run manually using a `repository_dispatch`. 
 
+=== Triggering the Pipeline Whenever the Book Repository Changes
+
 You'll need to have https://github.com/settings/tokens[a Github Personal Access Token] - this is easy to do from your `Developer Settings` page in the `Settings` section of your account. Configure a Github Actions secret called `GH_PAT` in your https://docs.github.com/en/actions/reference/encrypted-secrets[repository's `Secrets`] section that contains your Github Personal Access Token.
 
 Then, configure a Github Action for the Github repository that contains your `.adoc` files. You can use the Github Action workflow in the `sample-book` repository as a foundation:
@@ -387,4 +389,35 @@ jobs:
       - run: ${GITHUB_WORKSPACE}/.github/workflows/trigger_book_build.sh 
 ----
 
-This workflow will run whenever you `git push` the changes to your `.adoc` files. It in turn calls the following script
+This workflow will run whenever you `git push` the changes to your `.adoc` files. The Github Action couldn't be more trivial: it clones your `.adoc` file and then triggers the book publication pipeline. In this case, that pipeline is http://github.com/bootiful-asciidoctor/sample-pipeline. Make sure to adjust the environment variables to reflect your Github repository. 
+
+The workflow in turn invokes a Shell script in the same directory - `trigger_book_build.sh` - that looks like this:
+
+[source.shell]
+----
+#!/usr/bin/env bash 
+
+# <1>
+curl -H "Accept: application/vnd.github.everest-preview+json" -H "Authorization: token ${GH_PAT}" --request POST  --data '{"event_type": "update-event"}' https://api.github.com/repos/${PIPELINE_ORG_NAME}/${PIPELINE_REPO_NAME}/dispatches
+----
+<1> Note that we're sending a payload in the body of the HTTP `POST` entity in which we specify the name of the event we'd like to trigger. It's arbitrary. Here, we say that the `event_type` is `update-event`, but `update-event` could just as easily have been `publish-please-event` or anything else, so long as we remember the event we've specified when implementing the next part... 
+
+That `curl` command invokes the Github API and triggers the pipeline workflow which in turn then ends up pulling in this very `sample-book` repository and all the dependent code repositories and then, a few minutes later, produces all the various documents.
+
+=== Enabling the Pipeline repository to listen for changes 
+
+You don't need to do much to make this work here besides ensure that your workflow file explicitly supports our arbitrary event. You can refer to the `sample-pipeline` Github Actions workflow for a more thorough example, but here's the important bit: 
+
+
+[source.shell]
+----
+on:
+  repository_dispatch:
+    types: update-event
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+----
+
+That tells Github Actions to run the pipeline whenever anybody updates the code in the pipeline repository itself or whenever it receives a valid `update-event`, like the one we're publishing from the `sample-book` repository Github Actions. 
