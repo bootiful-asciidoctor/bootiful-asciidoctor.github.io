@@ -728,7 +728,7 @@ pipeline.job.include-repositories=\
 </ul>
 </div>
 <div class="paragraph">
-<p>If you&#8217;re running on macOS, as I am, you&#8217;d specify <code>publication.mobi.enabled=false</code>.</p>
+<p>All of these are enabled by default on Linux. The <code>MobiDocumentProducer</code> does not run unless it is on Linux. It&#8217;ll automatically disable itself on any other operating system.</p>
 </div>
 <div class="paragraph">
 <p>Remember, you could specify all of these properties through any mechanism Spring Boot provides, including environment variables.</p>
@@ -743,6 +743,23 @@ pipeline.job.include-repositories=\
 </div>
 <div class="paragraph">
 <p>Then run the pipeline. That will override any value specified in your local <code>application.properties</code> or <code>application.yml</code>.</p>
+</div>
+<div class="sect3">
+<h4 id="_pdf_compression">PDF Compression</h4>
+<div class="paragraph">
+<p>You may want to compress your PDF files. You can specify   <code>publication.pdf.screen.optimize=true</code> to optimize the screen-ready PDF, and <code>publication.pdf.prepress.optimize=true</code> to optimize the press-ready PDF. Specify this and the respective <code>DocumentProducer</code> will emit one regular and one optimized PDF.</p>
+</div>
+<div class="paragraph">
+<p>The pipeline shells out to the <code>asciidoctor-pdf-optimize</code> script which must be installed before it can be used. The <a href="http://github.com/bootiful-asciidoctor/sample-pipeline"><code>sample-pipeline</code></a> is a good example on how to get everythign working on an Ubuntu machine before running the build. Here&#8217;s the command to install everything required using the Ubuntu <code>apt</code> package management system.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">sudo apt install ghostscript  \
+  &amp;&amp; sudo gem install asciidoctor
+  &amp;&amp; sudo gem install asciidoctor-pdf \
+  &amp;&amp; sudo gem install rghost</code></pre>
+</div>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -941,11 +958,96 @@ pipeline.job.publishers.s3.bucket-name=bootiful-asciidoctor</code></pre>
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="_running_the_build_when_you_update_the_book">Running the build when you update the book</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>So, you&#8217;ve got everything installed and configured. You have the pipeline setup on one node. You have the <code>.adoc</code> files living in some other repository, and now you want to force the book to rebuild each time you change the <code>.adoc</code> repository. Unfortunately, Github Actions don&#8217;t <em>yet</em> have a way to force one build to happen whenever another changes. But we <em>can</em> force our pipeline to run manually using a <code>repository_dispatch</code>.</p>
+</div>
+<div class="sect2">
+<h3 id="_triggering_the_pipeline_whenever_the_book_repository_changes">Triggering the Pipeline Whenever the Book Repository Changes</h3>
+<div class="paragraph">
+<p>You&#8217;ll need to have <a href="https://github.com/settings/tokens">a Github Personal Access Token</a> - this is easy to do from your <code>Developer Settings</code> page in the <code>Settings</code> section of your account. Configure a Github Actions secret called <code>GH_PAT</code> in your <a href="https://docs.github.com/en/actions/reference/encrypted-secrets">repository&#8217;s <code>Secrets</code></a> section that contains your Github Personal Access Token.</p>
+</div>
+<div class="paragraph">
+<p>Then, configure a Github Action for the Github repository that contains your <code>.adoc</code> files. You can use the Github Action workflow in the <code>sample-book</code> repository as a foundation:</p>
+</div>
+<div class="listingblock yml">
+<div class="content">
+<pre class="highlight"><code>name: CI
+
+env:
+  PIPELINE_ORG_NAME: bootiful-asciidoctor
+  PIPELINE_REPO_NAME: sample-pipeline
+  GH_PAT: ${{ secrets.GH_PAT }}
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: ${GITHUB_WORKSPACE}/.github/workflows/trigger_book_build.sh</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This workflow will run whenever you <code>git push</code> the changes to your <code>.adoc</code> files. The Github Action couldn&#8217;t be more trivial: it clones your <code>.adoc</code> file and then triggers the book publication pipeline. In this case, that pipeline is <a href="http://github.com/bootiful-asciidoctor/sample-pipeline" class="bare">http://github.com/bootiful-asciidoctor/sample-pipeline</a>. Make sure to adjust the environment variables to reflect your Github repository.</p>
+</div>
+<div class="paragraph">
+<p>The workflow in turn invokes a Shell script in the same directory - <code>trigger_book_build.sh</code> - that looks like this:</p>
+</div>
+<div class="listingblock shell">
+<div class="content">
+<pre class="highlight"><code>#!/usr/bin/env bash
+
+# <b class="conum">(1)</b>
+curl -H "Accept: application/vnd.github.everest-preview+json" -H "Authorization: token ${GH_PAT}" --request POST  --data '{"event_type": "update-event"}' https://api.github.com/repos/${PIPELINE_ORG_NAME}/${PIPELINE_REPO_NAME}/dispatches</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>Note that we&#8217;re sending a payload in the body of the HTTP <code>POST</code> entity in which we specify the name of the event we&#8217;d like to trigger. It&#8217;s arbitrary. Here, we say that the <code>event_type</code> is <code>update-event</code>, but <code>update-event</code> could just as easily have been <code>publish-please-event</code> or anything else, so long as we remember the event we&#8217;ve specified when implementing the next part&#8230;&#8203;</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>That <code>curl</code> command invokes the Github API and triggers the pipeline workflow which in turn then ends up pulling in this very <code>sample-book</code> repository and all the dependent code repositories and then, a few minutes later, produces all the various documents.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_enabling_the_pipeline_repository_to_listen_for_changes">Enabling the Pipeline repository to listen for changes</h3>
+<div class="paragraph">
+<p>You don&#8217;t need to do much to make this work here besides ensure that your workflow file explicitly supports our arbitrary event. You can refer to the <code>sample-pipeline</code> Github Actions workflow for a more thorough example, but here&#8217;s the important bit:</p>
+</div>
+<div class="listingblock shell">
+<div class="content">
+<pre class="highlight"><code>on:
+  repository_dispatch:
+    types: update-event
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>That tells Github Actions to run the pipeline whenever anybody updates the code in the pipeline repository itself or whenever it receives a valid <code>update-event</code>, like the one we&#8217;re publishing from the <code>sample-book</code> repository Github Actions.</p>
+</div>
+</div>
+</div>
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
 Version 1.0<br>
-Last updated 2020-09-13 21:32:55 -0700
+Last updated 2020-09-20 05:39:46 -0700
 </div>
 </div>
 </body>
